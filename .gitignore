@@ -1,4 +1,6 @@
 .vscode/
 logs/
-graphs/
 __pycache__/
+urs_env/
+*.log*
+data/
