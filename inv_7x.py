@@ -18,9 +18,6 @@ class inv_7x:
             pl.Path(dir).mkdir(parents=True, exist_ok=True)
         pass
 
-    #in the future could write a def write_deck() function instead of writing it manually
-    #enter rise time in ps
-
     def run_sim(self):
         #make sure you source the proper hspice binaries first
         subprocess.run(["hspice",self.sp_path,"-o",self.lis_path])

@@ -40,3 +40,4 @@ Vin 1 0 PULSE(0.8 0 10p x x 80p 200p)
 .option probe
 .probe tran v(in) * only save transient output of inverter of interest. Verify this works
 .probe tran v(out)
+.end
