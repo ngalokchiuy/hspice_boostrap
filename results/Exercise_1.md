@@ -41,10 +41,8 @@
 ## Graphical Ouputs when x=10p (rise time for PWL input)
 
 <p align="center">
-    <img src="../graphs/inv_7x_10p_tp_vs_k.png" alt="tphl and tplh (ps) vs. k" width="500">
-</p>
-<p align="center">
-    <img src="../graphs/inv_7x_10p_tr_tf_vs_k.png" alt="tr and tf (ps) vs. k" width="500">
+  <img src="../graphs/inv_7x_10p_tp_vs_k.png" alt="tphl and tplh vs k" width="48%" />
+  <img src="../graphs/inv_7x_10p_tr_tf_vs_k.png" alt="tr and tf vs k" width="48%" />
 </p>
 <p align="center">
     <img src="../graphs/inv_7x_10p_diff_tp_vs_k.png" alt="tr and tf (ps) vs. k" width="500">
@@ -94,10 +92,8 @@
 
 ## Graphical Outout when x=5.7p ~ tr=tp
 <p align="center">
-    <img src="../graphs/inv_7x_6p_tp_vs_k.png" alt="tphl and tplh (ps) vs. k" width="500">
-</p>
-<p align="center">
-    <img src="../graphs/inv_7x_6p_tr_tf_vs_k.png" alt="tr and tf (ps) vs. k" width="500">
+    <img src="../graphs/inv_7x_6p_tp_vs_k.png" alt="tphl and tplh (ps) vs. k" width="48%">
+    <img src="../graphs/inv_7x_6p_tr_tf_vs_k.png" alt="tr and tf (ps) vs. k" width="48%">
 </p>
 <p align="center">
     <img src="../graphs/inv_7x_6p_diff_tp_vs_k.png" alt="tr and tf (ps) vs. k" width="500">

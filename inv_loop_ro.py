@@ -31,7 +31,8 @@ class inv_loop_ro:
 
     def plot_inv_loop_ro(self, graph_dir:str="graphs"):
         self.get_series()
-        f_dict = {f"f (Ghz), when GND=0V T/42 = {self.t_over_42:.4f}ps": self.f_vals}
+        f_dict = {f"f (Ghz)": self.f_vals}
+        # f_dict = {f"f (Ghz), when GND=0V T/42 = {self.t_over_42:.4f}ps": self.f_vals}
         plt.figure(1)
         self.graph_path1 = f"{graph_dir}/{self.base_name}_f_vs_v.png"
         graph.plot_series(
@@ -39,7 +40,7 @@ class inv_loop_ro:
             y_dict=f_dict,
             xlabel="Ground Node Voltage (V)",
             ylabel="f (GHz)",
-            title="Inv 21x Ring Oscillator Frequency vs. GND Node Voltage",
+            title=f"{self.base_name} Ring Oscillator Frequency vs. GND Node Voltage",
             filename=self.graph_path1
         )
         plt.clf()
