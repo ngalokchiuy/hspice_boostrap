@@ -1,6 +1,6 @@
 Inverter SWP 1x loop
 .include ../models/22nm_HP.sp
-.param K=1.324
+.param K=1.4
 .param x=5.7p
 .param gnd_val=0
     

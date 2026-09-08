@@ -73,8 +73,9 @@ def parse_sw0(filepath):
     col_headers.pop(0) #arg for num of indep vars swept
 
 
-    float_pattern = re.compile(r'[+-]?\d+\.\d+[eE][-+]\d{2}')
-    data = [float(val) for val in float_pattern.findall(raw_data)]
+    float_pattern = re.compile(r'[+-]?\d*\.\d+[eE][-+]\d{2}')
+    data = [float(val) for val in float_pattern.findall(raw_data)
+            if float(val) < 1e30] #catch 0.1000000E+31 delimiter between nested sweeps
 
     #data is currently all flat
     # doing the same reshaping as I did in prev function but doing it all at once
@@ -83,3 +84,64 @@ def parse_sw0(filepath):
 
     df = pd.DataFrame(rows, columns=col_headers, dtype=float) #check if this handles scientific notation
     return df
+import re
+import pandas as pd
+
+def parse_nested_sw0(filepath):
+    with open(filepath, 'r') as file:
+        raw_data = file.read()
+
+    col_headers = []
+    in_header = False
+    for item in raw_data.split():
+        if item == "Reserved.":
+            in_header = True
+            continue
+        if in_header:
+            if item == "$&%#":
+                break
+            else:
+                col_headers.append(item)
+    col_headers.pop(0) # number following reserved
+    col_headers.pop(0) # arg for num of value columns per row
+    col_headers.pop(0) # arg for num of indep vars swept? Not so sure now because it was 8 this time
+
+    data_body = raw_data.split("$&%#")[-1]
+
+    # float_pattern = re.compile(r'[+-]?\d*\.\d+[eE][-+]\d+')
+    # Split the body by the nested block delimiter (1e31)
+    blocks = data_body.split("0.1000000E+31")
+
+    rows = []
+    for block in blocks:
+        # vals = [float(val) for val in float_pattern.findall(block)]
+        tokens = block.strip().split()
+        # print("printing tokens")
+        # print(tokens)
+        if not tokens:
+            continue
+        vals = []
+        for token in tokens:
+            i = 0
+            while i < len(token):
+                # Match standard float chunks safely
+                match = token[i:i+13] #assume 13 characters
+                try:
+                    # print(f"match = {match}")
+                    vals.append(float(match))
+                    i += len(match)
+                except ValueError:
+                    i += 1
+        outer_val = vals[0]
+        inner_vals = vals[1:]
+
+        for i in range(0, len(inner_vals), 2):
+            if i + 1 < len(inner_vals):
+                row = [inner_vals[i], inner_vals[i+1], outer_val]
+                rows.append(row)
+
+    df = pd.DataFrame(rows, columns=col_headers, dtype=float)
+    return df
+
+
+

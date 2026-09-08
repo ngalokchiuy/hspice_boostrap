@@ -8,7 +8,7 @@ tplh = tphl = T / (<num_stages>*2)
 Using the results from Exercise 1 and Exercise 2.a:
 | k | tplh (ps) | tphl (ps) | T / 42 (ps) |
 |-|-|-|-|
-| 1.324 | 3.155 | 3.168 | 3.136 |
+| 1.4 |  3.122 | 3.164 |  3.15 |
 ## Current Starving a 3x Inverter Ring Oscillator
 
 When we increase the voltage of the ground node, we are decreasing the net voltage difference across VDD and ground and therefore reducing the drive strength each stage. This results in a slower frequency as shown below.
@@ -23,7 +23,7 @@ When we increase the voltage of the ground node, we are decreasing the net volta
 ## Single Looped Inverter for Determining Voltage Switchpoint
 Below we plot the switch point of an inverter for various k by tying the input of the inverter directly to the output. In a standard VTC, Vout is plotted against Vin, and the point where Vout=Vin is known as the voltage switpoint. Here we are using a single loop inverter to determine the switchpoint without sweeping Vin. 
 
-By sweeping k instead, we see the effect of varrying the strength of the pmos transistor relative to the nmos. 
+By sweeping k instead, we see the effect of varrying the strength of the pmos transistor relative to the nmos on the swithpoint. A symmetric inverter should occur when `V_swp = VDD/2`.
 <p align="center">
     <img src="../graphs/inv_loop_swp.png" width=98%>
 </p>

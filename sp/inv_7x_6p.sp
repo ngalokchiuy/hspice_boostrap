@@ -24,7 +24,7 @@ X6 7 8 vdd vss inv k='K'
 Vin 1 0 PULSE(0.8 0 10p x x 80p 200p)
 
 * adding sweep
-.tran 0.01p 200p SWEEP K LIN 35.0 0.5 4
+.tran 0.01p 200p SWEEP K LIN 36.0 0.5 4
 
 .meas tran tplh trig v(in) val=0.4 fall=1 targ v(out) val=0.4 rise=1
 .meas tran tphl trig v(in) val=0.4 rise=1 targ v(out) val=0.4 fall=1
@@ -36,8 +36,11 @@ Vin 1 0 PULSE(0.8 0 10p x x 80p 200p)
 .meas tran diff_tplh_tphl param='abs(tplh-tphl)'
 .meas tran diff_tr_tf param='abs(tr-tf)'
 
-.option post=2 *save output in ascii fomrat
+*save output in ascii fomrat
+.option post=2 
 .option probe
-.probe tran v(in) * only save transient output of inverter of interest. Verify this works
+* only save transient output of inverter of interest. Verify this works
+.probe tran v(in) 
 .probe tran v(out)
 .end
+

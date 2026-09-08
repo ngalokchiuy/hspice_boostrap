@@ -58,17 +58,17 @@ if __name__=="__main__":
     parser.add_argument("--write_deck", default=True, type=bool)
     args=parser.parse_args()
 
-    # if args.write_deck: 
-    #     build.write_inv_loop(output_file="sp/inv_loop_21x.sp", input_rise_time=5.7, K=1.324)
+    if args.write_deck: 
+        build.write_inv_loop(output_file="sp/inv_loop_21x.sp", input_rise_time=5.7, K=1.4)
 
-    #     deck = inv_loop_ro("inv_loop_21x.sp")
-    # if args.run_sim: #run spice sim
-    #     deck.run_sim()
-    # deck.plot_inv_loop_ro()
-    # deck.tabulate_inv_loop_ro()
+        deck = inv_loop_ro("inv_loop_21x.sp")
+    if args.run_sim: #run spice sim
+        deck.run_sim()
+    deck.plot_inv_loop_ro()
+    deck.tabulate_inv_loop_ro()
 
     if args.write_deck: 
-        build.write_inv_loop(output_file="sp/inv_loop_3x.sp", input_rise_time=5.7, K=1.324, inv_count=3)
+        build.write_inv_loop(output_file="sp/inv_loop_3x.sp", input_rise_time=5.7, K=1.4, inv_count=3)
 
         deck2 = inv_loop_ro("inv_loop_3x.sp")
     if args.run_sim: #run spice sim
