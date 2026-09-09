@@ -120,6 +120,16 @@ class inv_7x:
         md_table_str = self.df.to_markdown(index=False)
         with open (f"{data_dir}/{self.base_name}.md", 'w') as md:
             print(md_table_str, file=md)
+
+        # adding split table
+        df_tp_only = self.df[['k', 'tphl', 'tplh', 'diff_tplh_tphl']].copy()
+        md_tp_only_table = df_tp_only.to_markdown(index=False)
+        df_trf_only = self.df[['k', 'tr', 'tf', 'diff_tr_tf']].copy()
+        md_trf_only_table = df_trf_only.to_markdown(index=False)
+        with open (f"{data_dir}/{self.base_name}_split_tables.md", 'w') as md:
+                    print(md_tp_only_table, file=md)
+                    print("\n", file=md)
+                    print(md_trf_only_table, file=md)
         return
 
     
@@ -140,7 +150,7 @@ if __name__=="__main__":
     deck_10p.tabulate_inv_7x()
 
     if args.write_deck: 
-        build.write_inv_7x(output_file="sp/inv_7x_6p.sp", input_rise_time=5.7)
+        build.write_inv_7x(output_file="sp/inv_7x_6p.sp", input_rise_time=5.65)
     
     deck_6p = inv_7x("inv_7x_6p")
     if args.run_sim: #run spice sim

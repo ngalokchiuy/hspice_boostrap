@@ -33,11 +33,11 @@ X4 out 6 vdd vss inv k='K'
 X5 6 7 vdd vss inv k='K'
 X6 7 8 vdd vss inv k='K'
 
-Vin 1 0 PULSE(0.8 0 10p x x 80p 200p)
+Vin 1 0 PULSE(0.8 0 1n x x 1n 2n)
 """
     tran = f"""
 * adding sweep
-.tran 0.01p 200p SWEEP K LIN {(k_stop - k_start)/k_res + 1} {k_start} {k_stop}
+.tran 0.01p 3n SWEEP K LIN {(k_stop - k_start)/k_res + 1} {k_start} {k_stop}
 """
 
     meas = """
@@ -71,7 +71,7 @@ def write_inv_loop(output_file:str="sp/inv_loop.sp",
                     inv_count:int=21,
                     input_rise_time:float=5.7,
                     vdd:float=0.8,
-                    K:float=1.4,
+                    K:float=1.3,
                     gnd_start:float=0.0, gnd_stop:float=0.4, gnd_res:float=0.01):
 
     header = f"""Inverter 7x Chain -- Exercise 1.a, hspice
@@ -137,7 +137,7 @@ def write_inv_loop_1x(output_file:str="sp/inv_loop.sp",
                     model_path:str="models/22nm_HP.sp",
                     input_rise_time:float=5.7,
                     vdd:float=0.8,
-                    K:float=1.4,
+                    K:float=1.3,
                     k_start:float=0.3, k_stop:float=10, k_res:float=0.1):
 
     header = f"""Inverter SWP 1x loop
@@ -187,7 +187,7 @@ v1 vss 0 dc 'gnd_val'
 def write_iv_char(output_file:str="sp/nmos_iv_char.sp",
                 model_path:str="models/22nm_HP.sp",
                 vdd:float=0.8,
-                K:float=1.4,
+                K:float=1.3,
                 type:str="nmos", #or pmos
                 vgs_start:float=0.4, vgs_stop:float=0.8, vgs_res:float=0.1,
                 vds_start:float=0, vds_stop:float=0.8, vds_res:float=0.1):

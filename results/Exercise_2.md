@@ -8,7 +8,7 @@ tplh = tphl = T / (<num_stages>*2)
 Using the results from Exercise 1 and Exercise 2.a:
 | k | tplh (ps) | tphl (ps) | T / 42 (ps) |
 |-|-|-|-|
-| 1.4 |  3.122 | 3.164 |  3.15 |
+| 1.3 |  3.135 | 3.101 |   3.132 |
 ## Current Starving a 3x Inverter Ring Oscillator
 
 When we increase the voltage of the ground node, we are decreasing the net voltage difference across VDD and ground and therefore reducing the drive strength each stage. This results in a slower frequency as shown below.

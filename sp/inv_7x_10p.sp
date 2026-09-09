@@ -21,10 +21,10 @@ X4 out 6 vdd vss inv k='K'
 X5 6 7 vdd vss inv k='K'
 X6 7 8 vdd vss inv k='K'
 
-Vin 1 0 PULSE(0.8 0 10p x x 80p 200p)
+Vin 1 0 PULSE(0.8 0 1n x x 1n 2n)
 
 * adding sweep
-.tran 0.01p 200p SWEEP K LIN 36.0 0.5 4
+.tran 0.01p 3n SWEEP K LIN 36.0 0.5 4
 
 .meas tran tplh trig v(in) val=0.4 fall=1 targ v(out) val=0.4 rise=1
 .meas tran tphl trig v(in) val=0.4 rise=1 targ v(out) val=0.4 fall=1

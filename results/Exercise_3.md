@@ -22,7 +22,7 @@
 ## PMOS Caclulated ROn
 | Ron Caclulated Using BSIM4 Defaults (ohm) | Ron Calculated Using Model Card (Ohm) | Ron Simulated |
 |-|-|-|
-| 12411 | 3528.47 | 9790.96 |
+| 13365.79 | 3799.88 | 97980.16 |
 
 <p align=center>
     <img src="../graphs/nmos_iv_char.png" alt="nmos Iv characteristic curve" width="48%">

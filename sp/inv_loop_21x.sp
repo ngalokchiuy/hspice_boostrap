@@ -1,6 +1,6 @@
 Inverter 7x Chain -- Exercise 1.a, hspice
 .include ../models/22nm_HP.sp
-.param K=1.4
+.param K=1.3
 .param x=5.7p
 .param gnd_val=0
     

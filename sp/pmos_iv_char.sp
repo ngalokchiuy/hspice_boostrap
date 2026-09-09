@@ -1,6 +1,6 @@
 Mos VI characteristics
 .include ../models/22nm_HP.sp
-.param K=1.4
+.param K=1.3
 .param w_n=44n 
 .param l_n=22n
 .param l_p=22n
