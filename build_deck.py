@@ -250,9 +250,9 @@ def write_cg_char(output_file:str="sp/nmos_gnd_cg_char.sp",
     if type == "nmos_gnd":
         ckt += "M1 vss vg vss vss nmos w='w_n' l='l_n'\n"
     elif type == "nmos_vdd":
-        ckt += "M1 vdd vg vdd vdd nmos w='w_n' l='l_n'\n"
+        ckt += "M1 vdd vg vss vdd nmos w='w_n' l='l_n'\n"
     elif type == "pmos_gnd":
-        ckt += "M1 vss vg vss vss pmos w='w_p' l='l_p'\n"
+        ckt += "M1 vss vg vdd vss pmos w='w_p' l='l_p'\n"
     elif type == "pmos_vdd":
         ckt += "M1 vdd vg vdd vdd pmos w='w_p' l='l_p'\n"
 
