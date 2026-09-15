@@ -224,3 +224,54 @@ vds vds 0 DC 0.8
         print(deck, file=out_sp)
 
     return
+
+def write_cg_char(output_file:str="sp/nmos_gnd_cg_char.sp",
+                model_path:str="models/22nm_HP.sp",
+                vdd:float=0.8,
+                vac:float=0.001, #1 mv
+                K:float=1.3,
+                type:str="nmos_gnd", # nmos_vdd, pmos_vdd, pmos_gnd
+                vg_start:float=0.25*0.8, vg_stop:float=0.8, vg_res:float=0.25*0.8):
+
+    header = f"""{type} gate capacitance characteristics
+.include ../{model_path}
+.param K={K}
+.param w_n=44n 
+.param l_n=22n
+.param l_p=22n
+.param w_p='k*w_n'
+.param vg_val={vg_start}
+    """
+    ckt = f"""* make the sources
+    V0 vdd 0 DC {vdd}
+    v1 vss 0 dc 0
+    vg vg 0 DC vg_val AC {vac}
+    """
+    if type == "nmos_gnd":
+        ckt += "M1 vss vg vss vss nmos w='w_n' l='l_n'\n"
+    elif type == "nmos_vdd":
+        ckt += "M1 vdd vg vdd vdd nmos w='w_n' l='l_n'\n"
+    elif type == "pmos_gnd":
+        ckt += "M1 vss vg vss vss pmos w='w_p' l='l_p'\n"
+    elif type == "pmos_vdd":
+        ckt += "M1 vdd vg vdd vdd pmos w='w_p' l='l_p'\n"
+
+    analysis = f".ac lin 1 1Meg 1Meg SWEEP vg_val {vg_start} {vg_stop} {vg_res}\n"
+
+    meas = """
+*save output in ascii format
+.option post=2 
+.option probe
+*taking imaginary portion of output
+.probe Ii(vg) Ir(vg) Vi(vg) vr(vg)
+.end
+    """
+#     meas = """
+# .meas ac v_g 'Imag(V(vg))'
+# .meas ac C_gate PARAM='(Imag(i(vg))/(image(V(vg)))/(2*3.1415*1Meg)'
+# """
+    deck = header+ ckt + analysis + meas
+    with open (output_file, 'w') as out_sp:
+        print(deck, file=out_sp)
+
+    return

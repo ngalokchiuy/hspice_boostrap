@@ -145,3 +145,65 @@ def parse_nested_sw0(filepath):
 
 
 
+
+def parse_nested_ac0(filepath):
+    with open(filepath, 'r') as file:
+        raw_data = file.read()
+
+    col_headers = []
+    in_header = False
+    for item in raw_data.split():
+        if item == "Reserved.":
+            in_header = True
+            continue
+        if in_header:
+            if item == "$&%#":
+                break
+            elif item.isdigit():
+                continue
+            else:
+                col_headers.append(item)
+    print(col_headers)
+    data_body = raw_data.split("$&%#")[-1].strip()
+
+    # float_pattern = re.compile(r'[+-]?\d*\.\d+[eE][-+]\d+')
+    # Split the body by the nested block delimiter (1e31)
+    blocks = data_body.strip().split("0.1000000E+31")
+    print("blocks:" , blocks)
+    rows = []
+    for block in blocks:
+        block.strip("\n")
+        # vals = [float(val) for val in float_pattern.findall(block)]
+        tokens = block.strip().split()
+        print(f"tokens: ", tokens)
+        if not tokens:
+            continue
+        vals = []
+        for token in tokens:
+            i = 0
+            while i < len(token):
+                # Match standard float chunks safely
+                match = token[i:i+13] #assume 13 characters
+                try:
+                    print(f"match = {match}")
+                    vals.append(float(match))
+                    i += len(match)
+                except ValueError:
+                    i += 1
+        outer_val = vals[0]
+        inner_vals = vals[1:]
+
+        for i in range(0, len(inner_vals), 2):
+            row = []
+            for j in range(len(inner_vals)):
+                row.append(inner_vals[j])
+            print(f"row[{i}]=",row)
+            row.append(outer_val)
+            rows.append(row)
+
+    df = pd.DataFrame(rows, columns=col_headers, dtype=float)
+    return df
+
+
+
+
