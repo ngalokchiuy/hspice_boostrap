@@ -174,6 +174,7 @@ V2 vss 0 DC 0.0
             title=f"Delay versus Alpha for C_load = 10pf, M={builder.M:.5f}",
             filename=f"{graph_dir}/{self.base_name}.png"
         )
+        plt.clf()
         return
 
     
