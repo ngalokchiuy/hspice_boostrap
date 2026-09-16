@@ -275,3 +275,5 @@ def write_cg_char(output_file:str="sp/nmos_gnd_cg_char.sp",
         print(deck, file=out_sp)
 
     return
+
+
