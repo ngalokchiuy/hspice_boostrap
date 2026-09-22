@@ -15,8 +15,6 @@
 |      0.8 |       0.0268465 |
 
 
-
-
 # PMOS with S and D connected to Ground
 |   Vg (v) |   gate cap (fF) |
 |---------:|----------------:|

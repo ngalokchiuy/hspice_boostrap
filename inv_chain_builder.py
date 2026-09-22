@@ -161,6 +161,7 @@ V2 vss 0 DC 0.0
     
         extra_x = {f"(alpha, n) = ({alpha_best[0]:.2f},{n_best})": alpha_best}
         extra_y = {f"(alpha, n) = ({alpha_best[0]:.2f},{n_best})": delay_best}
+
         
         # Plot results
         plt.figure(1)
@@ -171,7 +172,7 @@ V2 vss 0 DC 0.0
             extra_y_dict=extra_y,
             xlabel="alpha",
             ylabel="delay (ps)",
-            title=f"Delay versus Alpha for C_load = 10pf, M={builder.M:.5f}",
+            title=f"Delay versus Alpha for C_load = {self.c_load*1e12}pf, M={builder.M:.5f}",
             filename=f"{graph_dir}/{self.base_name}.png"
         )
         plt.clf()
