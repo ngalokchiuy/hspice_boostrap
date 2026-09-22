@@ -3,6 +3,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm # for log scale leakage heatmap
 from scipy.stats import linregress
 import numpy as np
 import seaborn as sns
@@ -124,7 +125,8 @@ def generate_leakage_heatmap(data_dict, filename:str):
     
     # Using 'YlOrRd' (Yellow-Orange-Red) colormap to highlight higher leakage
     ax = sns.heatmap(data_array, annot=True, fmt=".3f", cmap="YlOrRd",
-                     xticklabels=circuits, yticklabels=inputs,
+                     xticklabels=circuits, yticklabels=inputs, 
+                     norm=LogNorm(),# <===========================added to fix heatmap scale so larger values don't drown out smaller
                      cbar_kws={'label': 'Leakage Current (nA)'})
     
     # 3. Format titles and labels

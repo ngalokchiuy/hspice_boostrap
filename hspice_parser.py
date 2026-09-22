@@ -25,7 +25,7 @@ def parse_mto(filepath):
     # files always start with $DATA1, then .TITLE
     for line in lines[2:]:
         line_str = line.strip()
-        if re.match(r'^[0-9]', line_str):
+        if re.match(r'^-?[0-9]', line_str):
             data.extend(line_str.split()) #split using whitespace
         else: #non number, in header
             col_headers.extend(line_str.split())
