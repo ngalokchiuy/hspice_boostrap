@@ -10,7 +10,7 @@ nmos_vdd gate capacitance characteristics
     V0 vdd 0 DC 0.8
     v1 vss 0 dc 0
     vg vg 0 DC vg_val AC 0.001
-    M1 vdd vg vss vdd nmos w='w_n' l='l_n'
+    M1 vdd vg vdd vss nmos w='w_n' l='l_n'
 .ac lin 1 1Meg 1Meg SWEEP vg_val 0.2 0.8 0.2
 
 *save output in ascii format

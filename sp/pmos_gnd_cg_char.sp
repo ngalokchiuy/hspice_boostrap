@@ -10,7 +10,7 @@ pmos_gnd gate capacitance characteristics
     V0 vdd 0 DC 0.8
     v1 vss 0 dc 0
     vg vg 0 DC vg_val AC 0.001
-    M1 vss vg vdd vss pmos w='w_p' l='l_p'
+    M1 vss vg vss vdd pmos w='w_p' l='l_p'
 .ac lin 1 1Meg 1Meg SWEEP vg_val 0.2 0.8 0.2
 
 *save output in ascii format
