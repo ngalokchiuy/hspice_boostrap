@@ -6,13 +6,14 @@ import pandas as pd
 import graphing as graph
 import hspice_parser as hp
 
-class nand_leak_builder:
-    def __init__(self, sp_filename:str="nand_leak.sp",
+class xor_leak_builder:
+    def __init__(self, sp_filename:str="xor_leak.sp",
                  model_path: str = "models",
-                 vdd = 0.8, k = 1.3):
+                 vdd = 0.8, k = 1.25, use_inverters:bool=True):
         
         self.base_name = pl.Path(sp_filename).stem
         self.model_path = model_path
+        self.use_inverters = use_inverters
         
         self.sp_path = f"sp/{self.base_name}.sp"
         self.mt_path = f"logs/{self.base_name}.mt0" 
@@ -29,7 +30,7 @@ class nand_leak_builder:
                                "circuit C" : [],
                                "circuit D" : []}
 
-    def build_nand(self, footer:bool=False, header:bool=False):
+    def build_xor(self, footer:bool=False, header:bool=False):
         pmos_s = "vdd"
         nmos_s = "vss"
         if footer:
@@ -37,23 +38,48 @@ class nand_leak_builder:
         if header:
             pmos_s = "head_out"
             
-        nand = f"""
-.subckt nand A B out {pmos_s} {nmos_s} pbulk nbulk k=1
+        if self.use_inverters:
+            subckt_def = f".subckt xor A B out {pmos_s} {nmos_s} pbulk nbulk k=1"
+            inv_str = f"""
+* Inverters for A and B (only used for use_inv == Flase!)
+M5 A_b A {pmos_s} pbulk pmos W='w_p' L='l_p'
+M6 A_b A {nmos_s} nbulk nmos W='w_n' L='l_n'
+M7 B_b B {pmos_s} pbulk pmos W='w_p' L='l_p'
+M8 B_b B {nmos_s} nbulk nmos W='w_n' L='l_n'
+"""
+            instantiation = f"X0 a b out {pmos_s} {nmos_s} vdd vss xor k='K'"
+        else:
+            subckt_def = f".subckt xor A B A_b B_b out {pmos_s} {nmos_s} pbulk nbulk k=1"
+            inv_str = ""
+            instantiation = f"X0 a b a_b b_b out {pmos_s} {nmos_s} vdd vss xor k='K'"
+
+        xor = f"""
+{subckt_def}
 .param w_n=44n l_n=22n w_p='k*w_n' l_p=22n
+{inv_str}
+* XOR PMOS Network
+M1 mid_p1 A {pmos_s} pbulk pmos W='w_p' L='l_p'
+M2 out B_b mid_p1 pbulk pmos W='w_p' L='l_p'
+M3 mid_p2 A_b {pmos_s} pbulk pmos W='w_p' L='l_p'
+M4 out B mid_p2 pbulk pmos W='w_p' L='l_p'
 
-M1 out A {pmos_s} pbulk pmos W='w_p' L='l_p'
-M2 out B {pmos_s} pbulk pmos W='w_p' L='l_p'
+* XOR NMOS Network
+M9 mid_n1 A {nmos_s} nbulk nmos W='w_n' L='l_n'
+M10 out B mid_n1 nbulk nmos W='w_n' L='l_n'
+M11 mid_n2 A_b {nmos_s} nbulk nmos W='w_n' L='l_n'
+M12 out B_b mid_n2 nbulk nmos W='w_n' L='l_n'
 
-M3 mid A {nmos_s} nbulk nmos W='w_n' L='l_n'
-M4 out B mid nbulk nmos W='w_n' L='l_n'
+.ends xor
 
-.ends nand
-
-X0 a b out {pmos_s} {nmos_s} vdd vss nand k='K'
+{instantiation}
         """
-        return nand
+        return xor
 
     def build_deck(self, footer:bool=False, header:bool=False, a="0.0", b="0.0"):
+        # Explicitly calculate inverted signals for testbench when skipping internal inverters
+        a_b = str(self.vdd) if float(a) == 0.0 else "0.0"
+        b_b = str(self.vdd) if float(b) == 0.0 else "0.0"
+        
         spice_header = f"""
 .include ../{self.model_path}/22nm_HP.sp
 .include ../{self.model_path}/hi_vt_22nm_HP.sp
@@ -65,8 +91,13 @@ V2 vss 0 DC 0.0
 Va a 0 DC {a}
 Vb b 0 DC {b}
         """
+        
+        # Add inverted stimuli if we are not generating them internally
+        if not self.use_inverters:
+            spice_header += f"Va_b a_b 0 DC {a_b}\n"
+            spice_header += f"Vb_b b_b 0 DC {b_b}\n"
 
-        nand = self.build_nand(footer, header)
+        xor = self.build_xor(footer, header)
 
         foot = ""
         head = ""
@@ -83,7 +114,7 @@ Vb b 0 DC {b}
 .end
         """ 
         
-        spice_str = spice_header + foot + nand + head + sim_mode + meas + footer_spice
+        spice_str = spice_header + foot + xor + head + sim_mode + meas + footer_spice
         
         with open(self.sp_path, 'w') as sp:
             print(spice_str, file=sp)
@@ -110,7 +141,9 @@ Vb b 0 DC {b}
         return i_out
 
 if __name__=="__main__":
-    builder = nand_leak_builder()
+    
+    # DO NOT USE INVERTERS -> leak will be symmetric
+    builder = xor_leak_builder(sp_filename=f"xor_leak_NO_inv.sp", use_inverters=False)
     
     builder.ab_truth_table["circuit A"] = builder.run_sim(0,0) 
     builder.ab_truth_table["circuit B"] = builder.run_sim(0,1)
@@ -123,6 +156,24 @@ if __name__=="__main__":
         for current in value:
             val_str += f" {current:.4e} |"
         print(f"{key}: {val_str}")
-        print("")
+    print("\n")
 
-    graph.generate_leakage_heatmap(builder.ab_truth_table, "graphs/nand_leak.png")
+    graph.generate_leakage_heatmap(builder.ab_truth_table, f"graphs/xor_leak_NO_inv.png")
+
+    # try using inverters for a' and b'
+    builder = xor_leak_builder(sp_filename=f"xor_leak_with_inv.sp", use_inverters=True)
+    
+    builder.ab_truth_table["circuit A"] = builder.run_sim(0,0) 
+    builder.ab_truth_table["circuit B"] = builder.run_sim(0,1)
+    builder.ab_truth_table["circuit C"] = builder.run_sim(1,0)
+    builder.ab_truth_table["circuit D"] = builder.run_sim(1,1)
+
+    print("For ab = 00, 01, 10, 11, currents are...")
+    for key, value in builder.ab_truth_table.items():
+        val_str = "|"
+        for current in value:
+            val_str += f" {current:.4e} |"
+        print(f"{key}: {val_str}")
+    print("\n")
+
+    graph.generate_leakage_heatmap(builder.ab_truth_table, f"graphs/xor_leak_with_inv.png")

@@ -27,7 +27,8 @@ extra_style_specs = [
     {'color': '#009E73', 'linestyle': '--', 'marker': 'd', 'linewidth': 1.2}, # Bluish Green (fallback)
 ]
 
-def plot_series(x_data, y_dict, extra_x_dict=None, extra_y_dict=None, xlabel="Time (ps)", ylabel="Voltage (V)", title="Simulation", filename="graphs/plot.png"):
+def plot_series(x_data, y_dict, extra_x_dict=None, extra_y_dict=None, xlabel="Time (ps)", ylabel="Voltage (V)", title="Simulation", filename="graphs/plot.png",
+                log_x=False, log_y=False):
     """
     y_dict: {"signal": np_array}
     extra_x_dict: {"trace_name": np_array} - Explicit X mapping for extra traces
@@ -70,7 +71,11 @@ def plot_series(x_data, y_dict, extra_x_dict=None, extra_y_dict=None, xlabel="Ti
                     zorder=5
                 )
                 extra_idx += 1
-        
+    if log_x:
+        plt.xscale('log')
+    if log_y:
+        plt.yscale('log')
+          
     plt.xlabel(xlabel, fontweight='bold')
     plt.ylabel(ylabel, fontweight='bold')
     plt.title(title, fontweight='bold')
@@ -114,7 +119,7 @@ def generate_leakage_heatmap(data_dict, filename:str):
         raw_list = data_dict[key] 
         
         # Take the absolute value and scale to nA (1e9) for each item in the list
-        row_data = [abs(val) * 1e9 for val in raw_list]
+        row_data = [abs(val) * 1e12 for val in raw_list] #<=======================get in pA instead
         processed_data.append(row_data)
         
     # Convert to a NumPy array and transpose (.T) so inputs are rows and circuits are columns
@@ -122,17 +127,20 @@ def generate_leakage_heatmap(data_dict, filename:str):
     
     # 2. Configure and draw the heatmap
     plt.figure(figsize=(9, 6))
-    
+    plt.rcParams.update({'font.size': 14})
+
     # Using 'YlOrRd' (Yellow-Orange-Red) colormap to highlight higher leakage
-    ax = sns.heatmap(data_array, annot=True, fmt=".3f", cmap="YlOrRd",
+    ax = sns.heatmap(data_array, annot=True, annot_kws={"size": 15}, #increase font
+                      fmt=".3f", cmap="YlOrRd",
                      xticklabels=circuits, yticklabels=inputs, 
-                     norm=LogNorm(),# <===========================added to fix heatmap scale so larger values don't drown out smaller
-                     cbar_kws={'label': 'Leakage Current (nA)'})
+                    #  norm=LogNorm(),# <===========================added to fix heatmap scale so larger values don't drown out smaller
+                     cbar_kws={'label': 'Leakage Current (pA)'}) #<--------------------------edited to pA
+
     
     # 3. Format titles and labels
     plt.title("Static Leakage Current in Sleep Mode (S=1)", fontsize=14, pad=15)
-    plt.xlabel("Circuit Configuration", fontsize=12, labelpad=10)
-    plt.ylabel("Input State (ab)", fontsize=12, labelpad=10)
+    plt.xlabel("Circuit Configuration", fontsize=14, labelpad=10)
+    plt.ylabel("Input State (ab)", fontsize=14, labelpad=10)
     
     # Rotate the y-axis labels so they are upright
     plt.yticks(rotation=0)

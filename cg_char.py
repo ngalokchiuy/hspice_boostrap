@@ -23,7 +23,6 @@ class cg_char:
         pass
 
     def run_sim(self):
-        #make sure you source the proper hspice binaries first
         subprocess.run(["hspice",self.sp_path,"-o",self.lis_path])
         self.df = hp.parse_nested_ac0(self.ac_path) #<------------now nested
         print(self.df)

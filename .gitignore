@@ -4,3 +4,4 @@ __pycache__/
 urs_env/
 *.log*
 data/
+*.pdf

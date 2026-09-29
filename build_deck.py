@@ -277,3 +277,88 @@ def write_cg_char(output_file:str="sp/nmos_gnd_cg_char.sp",
     return
 
 
+def write_cd_char(output_file:str="sp/nmos_cd_char.sp",
+                model_path:str="models/22nm_HP.sp",
+                vdd:float=0.8,
+                vac:float=0.001, #1 mv
+                K:float=1.3,
+                type:str="nmos", # or pmos. Only two types now 
+                vd_start:float=0, vd_stop:float=0.8, vd_res:float=0.25*0.8,
+                use_area_and_perimeter:bool =True,
+                edit_area:bool=False): # <-------------------------test with as ad ps and pd 
+
+    # now must turn off gate. Measure diffusion using gnd or vdd on S and D
+
+    header = f"""{type} Diffusion capacitance characteristics
+.include ../{model_path}
+.param K={K}
+.param w_n=44n 
+.param l_n=22n
+.param l_p=22n
+.param w_p='k*w_n'
+.param vd_val={vd_start}
+.param vac_val={vac}
+    """
+    diffusion_area = f"""
+* added from bootstrap notes part 8
+* it doesn't seem we count twice for the perimeter
+.param as_n = 'w_n * l_n*1.5'
+.param as_p = 'w_p * l_p*1.5'
+.param ad_n = 'w_n * l_n*1.5'
+.param ad_p = 'w_p * l_p*1.5'
+.param ps_n = 'w_n + 3*l_n'
+.param ps_p = 'w_p + 3*l_p'
+.param pd_n = 'w_n + 3*l_n'
+.param pd_p = 'w_p + 3*l_p'
+"""
+    if edit_area:
+        diffusion_area = f"""
+* added from bootstrap notes part 8
+* it doesn't seem we count twice for the perimeter
+.param as_n = 'w_n * l_n*1'
+.param as_p = 'w_p * l_p*1'
+.param ad_n = 'w_n * l_n*1'
+.param ad_p = 'w_p * l_p*1'
+.param ps_n = '2*w_n + 2*l_n'
+.param ps_p = '2*w_p + 2*l_p'
+.param pd_n = '2*w_n + 2*l_n'
+.param pd_p = '2*w_p + 2*l_p'
+        """
+
+    ckt = f"""* make the sources
+    V0 vdd 0 DC {vdd}
+    v1 vss 0 dc 0
+    vg vg 0 dc {0 if type=="nmos" else vdd}
+    vd vd 0 DC vd_val AC {vac}
+    """
+
+
+
+    if type == "nmos":
+        ckt += "M1 vd vg vss vss nmos w='w_n' l='l_n'"
+    elif type == "pmos":
+        ckt += "M1 vd vg vdd vdd pmos w='w_p' l='l_p'"
+    if use_area_and_perimeter:
+        ckt+= "ad='ad_n' as='as_n' pd='pd_n' ps='ps_n'\n"
+    else:
+        ckt += "\n"
+
+    analysis = f".ac lin 1 1Meg 1Meg SWEEP vd_val {vd_start} {vd_stop} {vd_res}\n"
+
+    meas = """
+*save output in ascii format
+.option post=2 
+.option probe
+*taking imaginary portion of output
+.probe Ii(vd) Ir(vd) Vi(vd) vr(vd)
+    """
+# trying to get to work
+#     meas += """
+#     * Measure capacitance directly: C_diff = IMAG(I_vd) / (2 * pi * freq * V_ac)
+#     .meas ac c_diff PARAM='abs(IMAG(I(vd))) / (2 * 3.14159265 * 1Meg * vac_val)'
+# """
+
+    deck = header+ diffusion_area + ckt + analysis + meas + ".end"
+    with open (output_file, 'w') as out_sp:
+        print(deck, file=out_sp)
+    return

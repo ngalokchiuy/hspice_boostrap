@@ -53,7 +53,11 @@ class inv_chain_builder:
         if self.M < 1:
             raise ValueError("Error: M must be greater than 1.")
         # n has to be integers
-        n_list = list(range(3,max_n_to_test+1)) # <------------------------------chaning min n
+        min_n = 3
+        if (self.c_load == 1e-11) :
+            min_n = 4
+        n_list = list(range(min_n,max_n_to_test+1)) # <------------------------------chaning min n
+        
         alpha_list = []
 
         for n in n_list:
@@ -178,6 +182,38 @@ V2 vss 0 DC 0.0
         plt.clf()
         return
 
+    def log_graph(self, graph_dir:str="graphs"):
+        # self.get_series() # nothing complicated, just load from df here
+        delay = self.df["delay"]
+        delay = delay * 1e12 #convert to ps
+        alpha = np.array(self.alpha_list)
+        min_idx = self.df['delay'].idxmin() #switched to pandas function
+        alpha_best = np.array([self.alpha_list[min_idx]])
+        n_best = self.n_list[min_idx]
+        delay_best = np.array([self.df['delay'].min() *1e12])
+    
+        print(f"delay_best = {delay_best[0]} ps")
+    
+        extra_x = {f"(alpha, n) = ({alpha_best[0]:.2f},{n_best})": alpha_best}
+        extra_y = {f"(alpha, n) = ({alpha_best[0]:.2f},{n_best})": delay_best}
+
+        
+        # Plot results
+        plt.figure(1)
+        graph.plot_series(
+            x_data=alpha,
+            y_dict={"delay (ps)":delay}, # Now contains multiple arrays!
+            extra_x_dict=extra_x,
+            extra_y_dict=extra_y,
+            xlabel="alpha",
+            ylabel="delay (ps)",
+            title=f"Delay versus Alpha for C_load = {self.c_load*1e12}pf, M={builder.M:.5f}",
+            filename=f"{graph_dir}/{self.base_name}_log.png",
+            log_x=True
+        )
+        plt.clf()
+        return
+
     
     def tabulate(self, data_dir:str="data"):
         self.df.to_csv(f"{data_dir}/{self.base_name}.csv", index=False)
@@ -204,10 +240,12 @@ if __name__ == "__main__":
     builder = inv_chain_builder(sp_filename="inv_chain_1pf", model_path="models/22nm_HP.sp", c_load=1e-12, max_n=10)
     builder.get_delay_per_alpha()
     builder.graph()
+    builder.log_graph()
     builder.tabulate()
     builder = inv_chain_builder(sp_filename="inv_chain_10pf", model_path="models/22nm_HP.sp", c_load=10e-12, max_n=10)
     builder.get_delay_per_alpha()
     builder.graph()
     builder.tabulate()
+    builder.log_graph()
  
     

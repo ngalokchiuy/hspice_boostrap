@@ -6,10 +6,10 @@ import pandas as pd
 import graphing as graph
 import hspice_parser as hp
 
-class nand_leak_builder:
-    def __init__(self, sp_filename:str="nand_leak.sp",
+class nor_leak_builder:
+    def __init__(self, sp_filename:str="nor_leak.sp",
                  model_path: str = "models",
-                 vdd = 0.8, k = 1.3):
+                 vdd = 0.8, k = 1.25):
         
         self.base_name = pl.Path(sp_filename).stem
         self.model_path = model_path
@@ -29,7 +29,7 @@ class nand_leak_builder:
                                "circuit C" : [],
                                "circuit D" : []}
 
-    def build_nand(self, footer:bool=False, header:bool=False):
+    def build_nor(self, footer:bool=False, header:bool=False):
         pmos_s = "vdd"
         nmos_s = "vss"
         if footer:
@@ -37,21 +37,21 @@ class nand_leak_builder:
         if header:
             pmos_s = "head_out"
             
-        nand = f"""
-.subckt nand A B out {pmos_s} {nmos_s} pbulk nbulk k=1
+        nor = f"""
+.subckt nor A B out {pmos_s} {nmos_s} pbulk nbulk k=1
 .param w_n=44n l_n=22n w_p='k*w_n' l_p=22n
 
-M1 out A {pmos_s} pbulk pmos W='w_p' L='l_p'
-M2 out B {pmos_s} pbulk pmos W='w_p' L='l_p'
+M1 mid A {pmos_s} pbulk pmos W='w_p' L='l_p'
+M2 out B mid pbulk pmos W='w_p' L='l_p'
 
-M3 mid A {nmos_s} nbulk nmos W='w_n' L='l_n'
-M4 out B mid nbulk nmos W='w_n' L='l_n'
+M3 out A {nmos_s} nbulk nmos W='w_n' L='l_n'
+M4 out B {nmos_s} nbulk nmos W='w_n' L='l_n'
 
-.ends nand
+.ends nor
 
-X0 a b out {pmos_s} {nmos_s} vdd vss nand k='K'
+X0 a b out {pmos_s} {nmos_s} vdd vss nor k='K'
         """
-        return nand
+        return nor
 
     def build_deck(self, footer:bool=False, header:bool=False, a="0.0", b="0.0"):
         spice_header = f"""
@@ -66,7 +66,7 @@ Va a 0 DC {a}
 Vb b 0 DC {b}
         """
 
-        nand = self.build_nand(footer, header)
+        nor = self.build_nor(footer, header)
 
         foot = ""
         head = ""
@@ -83,7 +83,7 @@ Vb b 0 DC {b}
 .end
         """ 
         
-        spice_str = spice_header + foot + nand + head + sim_mode + meas + footer_spice
+        spice_str = spice_header + foot + nor + head + sim_mode + meas + footer_spice
         
         with open(self.sp_path, 'w') as sp:
             print(spice_str, file=sp)
@@ -110,7 +110,7 @@ Vb b 0 DC {b}
         return i_out
 
 if __name__=="__main__":
-    builder = nand_leak_builder()
+    builder = nor_leak_builder()
     
     builder.ab_truth_table["circuit A"] = builder.run_sim(0,0) 
     builder.ab_truth_table["circuit B"] = builder.run_sim(0,1)
@@ -125,4 +125,4 @@ if __name__=="__main__":
         print(f"{key}: {val_str}")
         print("")
 
-    graph.generate_leakage_heatmap(builder.ab_truth_table, "graphs/nand_leak.png")
+    graph.generate_leakage_heatmap(builder.ab_truth_table, "graphs/nor_leak.png")
