@@ -2,7 +2,7 @@
 .include ../models/22nm_HP.sp
 .include ../models/hi_vt_22nm_HP.sp
 .param w_n=44n l_n=22n w_p='k*w_n' l_p=22n
-.param K=1.25
+.param K=1.3
 
 V1 vdd 0 DC 0.8
 V2 vss 0 DC 0.0 

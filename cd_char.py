@@ -116,7 +116,7 @@ This was done using the dimensions shown in exercise 8
         if args.write_deck: 
             build.write_cd_char(output_file="sp/nmos_cd_char_NO_DIFF_DIMESIONS.sp", type="nmos", use_area_and_perimeter=False)
 
-        nmos = cd_char("sp/pmos_cd_char_NO_DIFF_DIMENSIONS.sp")
+        nmos = cd_char("sp/nmos_cd_char_NO_DIFF_DIMESIONS.sp")
         nmos.run_sim()
         results.write("## NMOS Diffusion Capicatnace WITHOUT As Ad Ps Pd specified\n")
         results.write(nmos.tabulate())

@@ -34,11 +34,11 @@ This was done using the dimensions shown in exercise 8
 ## NMOS Diffusion Capicatnace WITHOUT As Ad Ps Pd specified
 |   Vd (v) |   diff cap (fF) |
 |---------:|----------------:|
-|      0   |       0.0342753 |
-|      0.2 |       0.0356017 |
-|      0.4 |       0.0374771 |
-|      0.6 |       0.0405976 |
-|      0.8 |       0.0457848 |
+|      0   |       0.0344107 |
+|      0.2 |       0.0305934 |
+|      0.4 |       0.0282809 |
+|      0.6 |       0.0268765 |
+|      0.8 |       0.0258757 |
 
 
 ## PMOS Diffusion Capicatnace WITHOUT As Ad Ps Pd specified

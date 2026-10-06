@@ -84,8 +84,7 @@ def parse_sw0(filepath):
 
     df = pd.DataFrame(rows, columns=col_headers, dtype=float) #check if this handles scientific notation
     return df
-import re
-import pandas as pd
+
 
 def parse_nested_sw0(filepath):
     with open(filepath, 'r') as file:
@@ -205,5 +204,46 @@ def parse_nested_ac0(filepath):
     return df
 
 
+def parse_tr0(filepath):
+    with open(filepath, 'r') as file:
+        raw_data = file.read()
+    
+        col_headers = []
+        in_header = False
+        for item in raw_data.split():
+            if item == "TIME":
+                in_header = True
+                col_headers.append(item)
+                continue
+            if in_header:
+                if item == "$&%#":
+                    break
+                elif item.isdigit():
+                    continue
+                else:
+                    col_headers.append(item)
+                    # print("found header ", item)
+        print("col_headers", col_headers)
+        data_body = raw_data.split("$&%#")[-1].strip()
 
+        # adding this to get rid of all newline characters
+        data_body = ''.join(data_body.split())
+        data_body= data_body.replace("0.1000000E+31","")
+        # print("data body: ",data_body)
+        # float_pattern = re.compile(r'[+-]?\d*\.\d+[eE][-+]\d+')
+        vals = []
+        i = 0
+        while i < len(data_body):
+            # Match standard float chunks safely
+            match = data_body[i:i+13] #assume 13 characters
+            try:
+                # print(f"match = {match}")
+                vals.append(float(match))
+                i += len(match)
+            except ValueError:
+                i += 1
+        num_cols = len(col_headers)
+        rows = (vals[data_idx:data_idx+num_cols] for data_idx in range(0, len(vals), num_cols))
 
+        df = pd.DataFrame(rows, columns=col_headers, dtype=float) #check if this handles scientific notation
+        return df

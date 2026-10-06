@@ -9,7 +9,7 @@ import hspice_parser as hp
 class nor_leak_builder:
     def __init__(self, sp_filename:str="nor_leak.sp",
                  model_path: str = "models",
-                 vdd = 0.8, k = 1.25):
+                 vdd = 0.8, k = 1.3):
         
         self.base_name = pl.Path(sp_filename).stem
         self.model_path = model_path
