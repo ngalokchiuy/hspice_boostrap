@@ -175,8 +175,8 @@ R1 mid out r='R/2'
         graph.plot_series(
             x_data=time_ps,
             y_dict=y_dict,
-            extra_x_dict=extra_x,
-            extra_y_dict=extra_y,
+            # extra_x_dict=extra_x,
+            # extra_y_dict=extra_y,
             xlabel="t (ps)",
             ylabel="V (V)",
             title=f"Transient Simulation for {self.type} Segment TX-line",
@@ -202,7 +202,7 @@ R1 mid out r='R/2'
         return
 
     #trying to make a special graph
-    def tran_graph(self, graph_dir:str="graphs"):
+    def tran_graph(self, graph_dir:str="graphs", include_extras:bool=True, x_limit:int=160):
         import matplotlib.pyplot as plt
         import matplotlib.cm as cm
         
@@ -248,13 +248,14 @@ R1 mid out r='R/2'
                  linewidth=2.5, marker='s', markevery=max(1, len(time_ps)//20), 
                  label='V(out)', zorder=9)
 
-        # Plot Theoretical V_RC - Solid Red line
-        plt.plot(time_ps, y_vs, color='red', linestyle='-', linewidth=2.5, 
-                 label='V_RC(t) Eq.', zorder=11)
+        if include_extras:
+            # Plot Theoretical V_RC - Solid Red line
+            plt.plot(time_ps, y_vs, color='red', linestyle='-', linewidth=2.5, 
+                    label='V_RC(t) Eq.', zorder=11)
 
-        # Horizontal reference lines
-        plt.axhline(0.4, color='#d95f02', linestyle='--', label='0.5Vdd', zorder=1)
-        plt.axhline(0.504, color='#0072b2', linestyle='--', label='0.63Vdd', zorder=1)
+            # Horizontal reference lines
+            # plt.axhline(0.4, color='#d95f02', linestyle='--', label='0.5Vdd', zorder=1)
+            plt.axhline(0.504, color='#0072b2', linestyle='--', label='0.63Vdd', zorder=1)
 
         # Formatting to match your style
         plt.xlabel("t (ps)", fontweight='bold')
@@ -266,7 +267,7 @@ R1 mid out r='R/2'
         plt.legend(loc='lower right', framealpha=1.0, edgecolor='black', fontsize=9)
         
         # Lock the axes so you can see the ramp up clearly (adjust limits as needed)
-        plt.xlim(-5, 160)
+        plt.xlim(-5, x_limit)
         plt.ylim(-0.04, 0.84)
         
         plt.tight_layout()
@@ -319,7 +320,7 @@ if __name__ == "__main__":
     hi_tr_pi_builder.get_delay_per_n()
     hi_tr_pi_builder.get_transient()
     hi_tr_pi_builder.graph()
-    hi_tr_pi_builder.tran_graph_original()
+    hi_tr_pi_builder.tran_graph(include_extras=False, x_limit=300)
     hi_tr_pi_builder.tabulate()
 
     hi_tr_t_builder = tx_builder(sp_filename="t_tx_chain_hi_tr", type="T", n_max=n_max, n_tran=n_tran, R=R, C=C,
@@ -327,5 +328,5 @@ if __name__ == "__main__":
     hi_tr_t_builder.get_delay_per_n()
     hi_tr_t_builder.get_transient()
     hi_tr_t_builder.graph()
-    hi_tr_t_builder.tran_graph_original()
+    hi_tr_t_builder.tran_graph(include_extras=False, x_limit=300)
     hi_tr_t_builder.tabulate()
