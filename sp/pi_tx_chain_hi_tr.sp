@@ -17,12 +17,11 @@ X6 7 8 0 pi R=10.0 C=1e-13
 X7 8 9 0 pi R=10.0 C=1e-13
 X8 9 10 0 pi R=10.0 C=1e-13
 X9 10 out 0 pi R=10.0 C=1e-13
-.tran 0.001p 500p
+.tran 0.01p 500p
 .meas tran delay trig v(in) val=0.504 rise=1 targ v(out) val=0.504 rise=1
 
 .option post=2 
-* method from spk notes
-.option method=gear    
+.option delmax=0.01p  
 *tighter tolerance
 .option reltol=1e-6    
 .option absv=1e-6      

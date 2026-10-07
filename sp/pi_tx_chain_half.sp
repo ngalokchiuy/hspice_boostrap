@@ -1,5 +1,5 @@
 * TX-line pi 10 segments
-V1 in 0 PULSE(0 0.8 10p 5.7p 5.7p 1600p 1600p)
+V1 in 0 PULSE(0 0.8 10p 1000.0p 5.7p 1160.0p 1160.0p)
 .ic v(in)=0
         
 .subckt pi in out gnd R=100 C=10p
@@ -17,12 +17,11 @@ X6 7 8 0 pi R=10.0 C=1e-13
 X7 8 9 0 pi R=10.0 C=1e-13
 X8 9 10 0 pi R=10.0 C=1e-13
 X9 10 out 0 pi R=10.0 C=1e-13
-.tran 0.001p 150p
+.tran 0.116p 1160.0p
 .meas tran delay trig v(in) val=0.4 rise=1 targ v(out) val=0.4 rise=1
 
 .option post=2 
-* method from spk notes
-.option method=gear    
+.option delmax=0.01p  
 *tighter tolerance
 .option reltol=1e-6    
 .option absv=1e-6      

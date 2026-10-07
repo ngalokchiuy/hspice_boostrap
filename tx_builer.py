@@ -37,15 +37,22 @@ class tx_builder:
 
         self.n_list = list(range(1, n_max+1))
         self.df = pd.DataFrame(columns=['delay', 'temper', 'alter#'])
+        self.tr_df = pd.DataFrame(columns=['delay', 'temper', 'alter#'])
         self.tran_df = None
 
         for dir in ["logs", "graphs", "data", "md", "sp"]:
             pl.Path(dir).mkdir(parents=True, exist_ok=True)
         pass
 
-    def build_deck(self, n): #max in ps
+    def build_deck(self, n=None, rise_time=None, max_sim_time=None): #max in ps
+        if rise_time==None:
+            rise_time = self.tr # keep this for fixed tr
+        if n == None:
+            n = 10 #keep this for fixed n
+        if max_sim_time==None:
+            max_sim_time = self.max_time #<--------------------only have it change if updated by tr sweep
         header = f"""* TX-line {self.type} {n} segments
-V1 in 0 PULSE(0 0.8 10p {self.tr}p 5.7p 1600p 1600p)
+V1 in 0 PULSE(0 0.8 10p {rise_time}p 5.7p {max_sim_time}p {max_sim_time}p)
 .ic v(in)=0
         """
         
@@ -83,13 +90,13 @@ R1 mid out r='R/2'
                 subckt_out = "out"
             tx += f"X{i} {subckt_in} {subckt_out} 0 {self.type} R={seg_R} C={seg_C}\n"
 
-        tran = f".tran 0.001p {self.max_time}p\n"
+        step_size = max(0.01, max_sim_time / 10000)
+        tran = f".tran {step_size}p {max_sim_time}p\n"
         meas = f".meas tran delay trig v(in) val={self.v_trig} rise=1 targ v(out) val={self.v_trig} rise=1\n"
         
         footer = f"""
 .option post=2 
-* method from spk notes
-.option method=gear    
+.option delmax=0.01p  
 *tighter tolerance
 .option reltol=1e-6    
 .option absv=1e-6      
@@ -99,6 +106,43 @@ R1 mid out r='R/2'
         with open(self.sp_path, 'w') as sp:
             print(spice_str, file=sp)
         return
+
+    def get_delay_per_tr(self):
+        #build deck should now take in tr as a parameter
+        min_t = 0.1 #.1 ps
+        max_t = 1000# 1 second
+        self.tr_list = np.linspace(min_t, max_t, 40)
+        for tr in self.tr_list:
+            self.build_deck(rise_time=tr, max_sim_time=(10 + tr + 150)) #these are entered in ps 
+            subprocess.run(["hspice", self.sp_path, "-o", self.lis_path])
+            tr_df = hp.parse_mto(self.mt_path)  
+            tr_df['tr'] = tr #<--------------------------------in ps
+            print(f"for type = {self.type} and tr = {tr}")
+            print(tr_df)
+
+            self.tr_df = pd.concat([self.tr_df, tr_df], ignore_index=True)
+        
+        print("Final tr Df:")
+        print(self.tr_df)
+        return
+
+    def graph_delay_vs_tr(self, graph_dir:str="graphs"):
+        delay = self.tr_df["delay"]
+        delay = delay * 1e12 
+        tr_data = (self.tr_df["tr"].to_numpy()) #<----------- in ps
+
+        plt.figure(1)
+        graph.plot_series(
+            x_data=tr_data,
+            y_dict={"delay (ps)": delay},
+            xlabel="tr (ps)",
+            ylabel="Delay (ps)",
+            title=f"Delay vs. {self.type.capitalize()} Segments TX-line",
+            filename=f"{graph_dir}/{self.base_name}_delay_vs_tr.png"
+        )
+        plt.clf()
+        return
+
 
     def get_delay_per_n(self):
         for n in self.n_list:
@@ -115,6 +159,7 @@ R1 mid out r='R/2'
         print("Final Df:")
         print(self.df)
         return
+
         
     def get_transient(self):
         self.build_deck(self.n_tran)
@@ -146,44 +191,44 @@ R1 mid out r='R/2'
         plt.clf()
         return
 
-    def tran_graph_original(self, graph_dir:str="graphs"): #in ps
-        time_ps = self.tran_df['TIME'] * 1e12
-        y_dict = {}
-        y_dict["V(in)"] = self.tran_df['v(in']
-        y_dict["V(out)"] = self.tran_df['v(out']
+    # def tran_graph_original(self, graph_dir:str="graphs"): #in ps
+    #     time_ps = self.tran_df['TIME'] * 1e12
+    #     y_dict = {}
+    #     y_dict["V(in)"] = self.tran_df['v(in']
+    #     y_dict["V(out)"] = self.tran_df['v(out']
         
-        for i in range(2, self.n_tran):
-            col_name = f"v({i}"
-            if col_name in self.tran_df.columns:
-                y_dict[f"V({i})"] = self.tran_df[col_name]
+    #     for i in range(2, self.n_tran):
+    #         col_name = f"v({i}"
+    #         if col_name in self.tran_df.columns:
+    #             y_dict[f"V({i})"] = self.tran_df[col_name]
 
-        max_sim_time = max(time_ps)
-        # max_sim_time = max_time 
-        print("max_sim_time = ", time_ps)
+    #     max_sim_time = max(time_ps)
+    #     # max_sim_time = max_time 
+    #     print("max_sim_time = ", time_ps)
         
-        extra_x = { 
-            "0.5Vdd":  np.array([1, max_sim_time]),
-            "0.63Vdd":  np.array([1, max_sim_time]),
-        }
+    #     extra_x = { 
+    #         "0.5Vdd":  np.array([1, max_sim_time]),
+    #         "0.63Vdd":  np.array([1, max_sim_time]),
+    #     }
         
-        extra_y = { 
-            "0.5Vdd": np.array([0.4, 0.4]),
-            "0.63Vdd":  np.array([0.504, 0.504]),
-        }
+    #     extra_y = { 
+    #         "0.5Vdd": np.array([0.4, 0.4]),
+    #         "0.63Vdd":  np.array([0.504, 0.504]),
+    #     }
 
-        plt.figure(2)
-        graph.plot_series(
-            x_data=time_ps,
-            y_dict=y_dict,
-            # extra_x_dict=extra_x,
-            # extra_y_dict=extra_y,
-            xlabel="t (ps)",
-            ylabel="V (V)",
-            title=f"Transient Simulation for {self.type} Segment TX-line",
-            filename=f"{graph_dir}/{self.base_name}_tran.png"
-        )
-        plt.clf()
-        return
+    #     plt.figure(2)
+    #     graph.plot_series(
+    #         x_data=time_ps,
+    #         y_dict=y_dict,
+    #         # extra_x_dict=extra_x,
+    #         # extra_y_dict=extra_y,
+    #         xlabel="t (ps)",
+    #         ylabel="V (V)",
+    #         title=f"Transient Simulation for {self.type} Segment TX-line",
+    #         filename=f"{graph_dir}/{self.base_name}_tran.png"
+    #     )
+    #     plt.clf()
+    #     return
 
     def tabulate(self, data_dir:str="data"):
         self.df.to_csv(f"{data_dir}/{self.base_name}.csv", index=False)
@@ -198,6 +243,17 @@ R1 mid out r='R/2'
         print(small_df)
         small_md_str = small_df.to_markdown(index=False)
         with open(f"{data_dir}/{self.base_name}_small_table.md", 'w') as md:
+            print(small_md_str, file=md)
+        return
+
+    def tabulate_tr(self, data_dir:str="data"):
+        small_df = pd.DataFrame({
+            "tr": self.tr_df['tr'],
+            "Delay (ps)": self.tr_df['delay'] * 1e12
+        })
+        print(small_df)
+        small_md_str = small_df.to_markdown(index=False)
+        with open(f"{data_dir}/{self.base_name}_delay_vs_tr.md", 'w') as md:
             print(small_md_str, file=md)
         return
 
@@ -285,48 +341,60 @@ if __name__ == "__main__":
 
     # rise time = 5.7 ps, sim time = 150ps, vdd ratio = 0.63, graph these
     pi_builder = tx_builder(sp_filename="pi_tx_chain", type="pi", n_max=n_max, n_tran=n_tran, R=R, C=C, 
-                            vdd_ratio=0.63)
-    pi_builder.get_delay_per_n()
-    pi_builder.get_transient()
-    pi_builder.graph()
-    pi_builder.tran_graph()
-    pi_builder.tabulate()
+                            vdd_ratio=0.63) #testing with tr=2
+    # pi_builder.get_delay_per_n()
+    # pi_builder.get_transient()
+    # pi_builder.graph()
+    # pi_builder.tran_graph()
+    # pi_builder.tabulate()
 
+ 
     t_builder = tx_builder(sp_filename="t_tx_chain", type="T", n_max=n_max, n_tran=n_tran, R=R, C=C,
                             vdd_ratio=0.63)
-    t_builder.get_delay_per_n()
-    t_builder.get_transient()
-    t_builder.graph()
-    t_builder.tran_graph()
-    t_builder.tabulate()
+    # t_builder.get_delay_per_n()
+    # t_builder.get_transient()
+    # t_builder.graph()
+    # t_builder.tran_graph()
+    # t_builder.tabulate()
 
+ 
     # don't graph just get delay for vdd_ratio = 0.5
     pi_builder = tx_builder(sp_filename="pi_tx_chain_half", type="pi", n_max=n_max, n_tran=n_tran, R=R, C=C, 
                             vdd_ratio=0.5)
-    pi_builder.get_delay_per_n()
-    pi_builder.get_transient()
-    pi_builder.tabulate()
+    # pi_builder.get_delay_per_n()
+    # pi_builder.get_transient()
+    # pi_builder.tabulate()
+
+    #added for last experiment 
+    pi_builder.get_delay_per_tr()
+    pi_builder.graph_delay_vs_tr()
+    pi_builder.tabulate_tr()
 
     t_builder = tx_builder(sp_filename="t_tx_chain_half", type="T", n_max=n_max, n_tran=n_tran, R=R, C=C,
                             vdd_ratio=0.5)
-    t_builder.get_delay_per_n()
-    t_builder.get_transient()
-    t_builder.tabulate()
-    
-    # making rise time >> tr
-    # try 200 ps
-    hi_tr_pi_builder = tx_builder(sp_filename="pi_tx_chain_hi_tr", type="pi",n_max=n_max, n_tran=n_tran, R=R, C=C, 
-                            max_time=500, rise_time=200)
-    hi_tr_pi_builder.get_delay_per_n()
-    hi_tr_pi_builder.get_transient()
-    hi_tr_pi_builder.graph()
-    hi_tr_pi_builder.tran_graph(include_extras=False, x_limit=300)
-    hi_tr_pi_builder.tabulate()
+    # t_builder.get_delay_per_n()
+    # t_builder.get_transient()
+    # t_builder.tabulate()
 
-    hi_tr_t_builder = tx_builder(sp_filename="t_tx_chain_hi_tr", type="T", n_max=n_max, n_tran=n_tran, R=R, C=C,
-                                 max_time=500, rise_time=200)
-    hi_tr_t_builder.get_delay_per_n()
-    hi_tr_t_builder.get_transient()
-    hi_tr_t_builder.graph()
-    hi_tr_t_builder.tran_graph(include_extras=False, x_limit=300)
-    hi_tr_t_builder.tabulate()
+    # added for one last experiment
+    t_builder.get_delay_per_tr()
+    t_builder.graph_delay_vs_tr()
+    t_builder.tabulate_tr()
+
+    # # making rise time >> tr
+    # # try 200 ps
+    # hi_tr_pi_builder = tx_builder(sp_filename="pi_tx_chain_hi_tr", type="pi",n_max=n_max, n_tran=n_tran, R=R, C=C, 
+    #                         max_time=500, rise_time=200)
+    # hi_tr_pi_builder.get_delay_per_n()
+    # hi_tr_pi_builder.get_transient()
+    # hi_tr_pi_builder.graph()
+    # hi_tr_pi_builder.tran_graph(include_extras=False, x_limit=300)
+    # hi_tr_pi_builder.tabulate()
+
+    # hi_tr_t_builder = tx_builder(sp_filename="t_tx_chain_hi_tr", type="T", n_max=n_max, n_tran=n_tran, R=R, C=C,
+    #                              max_time=500, rise_time=200)
+    # hi_tr_t_builder.get_delay_per_n()
+    # hi_tr_t_builder.get_transient()
+    # hi_tr_t_builder.graph()
+    # hi_tr_t_builder.tran_graph(include_extras=False, x_limit=300)
+    # hi_tr_t_builder.tabulate()
